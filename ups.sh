@@ -7,12 +7,30 @@ touch $LOG_FILE
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-ARGUMENTS=""
+ARGUMENTS=$(for f in $SCRIPT_DIR/package-finders/*.sh
+	    do
+		$f
+	    done)
 
-export DRY_RUN=true
 echo "
 
 $(date -Iseconds) New run of ups.sh" >> $LOG_FILE
+
+if [ -z "${NIXPKGS+}" ]
+then
+    NIXPKGS=$HOME/Projects/nixpkgs
+fi
+
+cd $NIXPKGS
+
+if ! [ -f default.nix ]
+then
+    NIXPKGS=$(mktemp -d)
+    git clone https://github.com/NixOS/nixpkgs $NIXPKGS
+    cd $NIXPKGS
+    git remote add upstream https://github.com/NixOS/nixpkgs-channels
+    git fetch upstream
+fi
 
 IFS=$'\n'
 for a in $ARGUMENTS
