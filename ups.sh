@@ -16,19 +16,12 @@ echo "
 
 $(date -Iseconds) New run of ups.sh" >> $LOG_FILE
 
-if [ -z "${NIXPKGS+}" ]
-then
-    NIXPKGS=$HOME/Projects/nixpkgs
-fi
-
-cd $NIXPKGS
-
-if ! [ -f default.nix ]
+if ! [ "$(git config --get remote.upstream.url | tr '[:upper:]' '[:lower:]' | sed 's|https\?://||')" = "github.com/nixos/nixpkgs" ]
 then
     NIXPKGS=$(mktemp -d)
-    git clone https://github.com/NixOS/nixpkgs $NIXPKGS
+    hub clone nixpkgs $NIXPKGS # requires that user has forked nixpkgs
     cd $NIXPKGS
-    git remote add upstream https://github.com/NixOS/nixpkgs-channels
+    git remote add upstream https://github.com/NixOS/nixpkgs
     git fetch upstream
 fi
 
