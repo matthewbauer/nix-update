@@ -29,6 +29,8 @@ case "$PACKAGE_NAME" in
     *) true;;
 esac || error_exit "Package on blacklist."
 
+PACKAGE_NAME=$(echo $PACKAGE_NAME | sed 's///')
+
 if git branch --remote | grep "origin/auto-update/${PACKAGE_NAME}"
 then
     error_exit "Update branch already on origin."
