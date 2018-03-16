@@ -65,7 +65,7 @@ function pull-request() {
 if [ -x $SCRIPT_DIR/updaters/$PACKAGE_NAME.sh ]
 then
     $SCRIPT_DIR/updaters/$PACKAGE_NAME.sh $@
-elif [ "$(nix-instantiate --eval -E 'with import ./. {}; builtins.hasAttr \"updateScript\" $PACKAGE_NAME')" ]
+elif [ "$(nix-instantiate --eval -E 'with import ./. {}; builtins.hasAttr \"updateScript\" $PACKAGE_NAME')" = "true" ]
 then
     $SCRIPT_DIR/updaters/update-script.sh $@
 elif ! [ -z "$OLD_VERSION" ] && ! [ -z "$NEW_VERSION" ]
