@@ -9,7 +9,7 @@ BRANCH_NAME="auto-update/$PACKAGE_NAME"
 function cleanup {
     git reset --hard
     git checkout master
-    git reset --hard upstream/nixpkgs-unstable
+    git reset --hard upstream/master
     git branch -D "$BRANCH_NAME" || true
 }
 
@@ -36,7 +36,7 @@ fi
 
 git reset --hard
 git checkout master
-git reset --hard upstream/nixpkgs-unstable
+git reset --hard upstream/master
 
 function error_cleanup {
     cleanup
@@ -44,7 +44,7 @@ function error_cleanup {
 }
 trap error_cleanup ERR
 
-git checkout `git merge-base upstream/nixpkgs-unstable upstream/staging`
+git checkout `git merge-base upstream/master upstream/staging`
 
 git checkout -B "$BRANCH_NAME"
 
