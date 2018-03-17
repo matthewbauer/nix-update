@@ -1,9 +1,16 @@
-PACKAGE_NAME=$1
+#! /usr/bin/env bash
+set -euxo pipefail
 
-$(nix eval -f . --raw "pkgs.${PACKAGE_NAME}.updateScript")
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source $SCRIPT_DIR/../utils.sh
+
+ATTR_PATH=$1
+
+$(nix eval -f . --raw "pkgs.$ATTR_PATH.updateScript")
 
 git add .
 
-git commit -am "$PACKAGE_NAME: update"
+git commit -am "$ATTR_PATH: update"
 
-pull-request "$PACKAGE_NAME: update"
+pull_request "$ATTR_PATH: update"

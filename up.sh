@@ -3,35 +3,35 @@ set -euxo pipefail
 
 NIX_PATH=nixpkgs=$(pwd)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PACKAGE_NAME=$1
-BRANCH_NAME="auto-update/$PACKAGE_NAME"
 
-function cleanup {
-    git reset --hard
-    git checkout master
-    git reset --hard upstream/master
-    git branch -D "$BRANCH_NAME" || true
-}
+source $SCRIPT_DIR/utils.sh
 
-function error_exit {
-    cleanup
-    echo "$(date -Iseconds) $PACKAGE_NAME" >&3
-    exit 1
-}
+if [ $# -eq 3 ] # normalize package name to attribute
+then
+    ATTR_PATH=$(nix-env -qa "$1-$2" -f . --attr-path | head -n1 | cut -d' ' -f1)
+else
+    ATTR_PATH=$1
+fi
+
+shift
+
+if [ -z "$ATTR_PATH" ]
+then
+    error_exit "No attribute found for $1."
+fi
+
+BRANCH_NAME="auto-update/$ATTR_PATH"
 
 # Package blacklist
-case "$PACKAGE_NAME" in
-    *jquery*) false;; # this isn't a real package
-    *google-cloud-sdk*) false;; # complicated package
-    *github-release*) false;; # complicated package
-    *fricas*) false;; # gets stuck in emacs
-    *libxc*) false;; # currently people don't want to update this
+case "$ATTR_PATH" in
+    google-cloud-sdk) false;; # complicated package
+    github-release) false;; # complicated package
+    fricas) false;; # gets stuck in emacs
+    libxc) false;; # currently people don't want to update this
     *) true;;
 esac || error_exit "Package on blacklist."
 
-PACKAGE_NAME=$(echo $PACKAGE_NAME | sed 's///')
-
-if git branch --remote | grep "origin/auto-update/${PACKAGE_NAME}"
+if git branch --remote | grep "origin/auto-update/$ATTR_PATH"
 then
     error_exit "Update branch already on origin."
 fi
@@ -50,31 +50,14 @@ git checkout `git merge-base upstream/master upstream/staging`
 
 git checkout -B "$BRANCH_NAME"
 
-# Try to push it three times
-function push() {
-    git push --set-upstream origin "$BRANCH_NAME" --force
-}
-
-function pull-request() {
-    echo "DRY RUN"
-    return
-
-    push || push || push
-
-    hub pull-request -m "$1"
-}
-
-if [ -x $SCRIPT_DIR/updaters/$PACKAGE_NAME.sh ]
+if [ -x $SCRIPT_DIR/updaters/$ATTR_PATH.sh ]
 then
-    $SCRIPT_DIR/updaters/$PACKAGE_NAME.sh $@
-elif [ "$(nix-instantiate --eval -E 'with import ./. {}; builtins.hasAttr \"updateScript\" $PACKAGE_NAME')" = "true" ]
+    $SCRIPT_DIR/updaters/$ATTR_PATH.sh $ATTR_PATH $@
+elif [ "$(nix-instantiate --eval -E "with import ./. {}; builtins.hasAttr \"updateScript\" $ATTR_PATH")" = true ]
 then
-    $SCRIPT_DIR/updaters/update-script.sh $@
-elif ! [ -z "$OLD_VERSION" ] && ! [ -z "$NEW_VERSION" ]
-then
-    $SCRIPT_DIR/updates/version.sh $@
+    $SCRIPT_DIR/updaters/update-script.sh $ATTR_PATH $@
 else
-    error_exit "Cannot find update method for $PACKAGE_NAME"
+    $SCRIPT_DIR/updaters/version.sh $ATTR_PATH $@
 fi
 
 git reset --hard

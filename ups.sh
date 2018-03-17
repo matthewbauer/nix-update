@@ -7,23 +7,24 @@ touch $LOG_FILE
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-ARGUMENTS=$(for f in $SCRIPT_DIR/package-finders/*.sh
-	    do
-		$f
-	    done)
+ARGUMENTS="emacsPackagesNg.melpaPackages"
 
 echo "
 
 $(date -Iseconds) New run of ups.sh" >> $LOG_FILE
 
-if ! [ "$(git config --get remote.upstream.url | tr '[:upper:]' '[:lower:]' | sed 's|https\?://||')" = "github.com/nixos/nixpkgs" ]
+NIXPKGS=$HOME/.cache/nixpkgs
+if ! [ -d "$NIXPKGS" ]
 then
-    NIXPKGS=$(mktemp -d)
     hub clone nixpkgs $NIXPKGS # requires that user has forked nixpkgs
     cd $NIXPKGS
     git remote add upstream https://github.com/NixOS/nixpkgs
     git fetch upstream
+    git fetch origin staging
+    git fetch upstream staging
 fi
+
+cd $NIXPKGS
 
 IFS=$'\n'
 for a in $ARGUMENTS
