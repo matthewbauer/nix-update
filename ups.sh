@@ -7,7 +7,13 @@ touch $LOG_FILE
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-ARGUMENTS="emacsPackagesNg.melpaPackages"
+if [ $# -eq 0 ]
+then
+    echo "Need location of file containing package list."
+    exit 1
+fi
+
+ARGUMENTS=$(cat $1)
 
 echo "
 
@@ -34,7 +40,6 @@ do
     if eval "$SCRIPT_DIR/up.sh $a 3>>$LOG_FILE"
     then
         echo "$(date -Iseconds) SUCCESS" >> $LOG_FILE
-        sleep 900
     else
         echo "$(date -Iseconds) FAIL" >> $LOG_FILE
     fi

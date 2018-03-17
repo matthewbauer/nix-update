@@ -20,7 +20,7 @@ then
     error_exit "No attribute found for $1."
 fi
 
-BRANCH_NAME="auto-update/$ATTR_PATH"
+export BRANCH_NAME="auto-update/$ATTR_PATH"
 
 # Package blacklist
 case "$ATTR_PATH" in

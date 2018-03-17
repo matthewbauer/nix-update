@@ -6,12 +6,9 @@ function push() {
 }
 
 function pull_request() {
-    echo "DRY RUN"
-    return
-
     push || push || push
 
-    hub pull-request -m "$1"
+    #hub pull-request -m "$1"
 }
 
 function cleanup {

@@ -49,9 +49,6 @@ fi
 
 sed -i "s/$OLD_HASH/$NEW_HASH/g" "$DERIVATION_FILE" || error_exit "Could not replace OLD_HASH with NEW_HASH."
 
-PR_MESSAGE="$ATTR_PATH: $OLD_VERSION -> $NEW_VERSION"
-git commit -am "$PR_MESSAGE"
-
 rm -f result*
 
 nix build -f . $ATTR_PATH || error_exit "nix build failed."
@@ -60,7 +57,7 @@ RESULT=$(readlink ./result || readlink ./result-bin || error_exit "Couldn't find
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-CHECK_RESULT=$($SCRIPT_DIR/check-result.sh $RESULT $NEW_VERSION)
+CHECK_RESULT=$($SCRIPT_DIR/../check-result.sh $RESULT $NEW_VERSION)
 
 MAINTAINERS=
 if nix eval "(let pkgs = import ./. {}; in pkgs.$ATTR_PATH.meta.maintainers)" > /dev/null 2>&1
